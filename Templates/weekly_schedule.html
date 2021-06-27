@@ -1,0 +1,99 @@
+<!doctype html>
+
+<html>
+<html lang='en'>
+    <head>
+        <title>Weekly Schedule</title>
+        <!--<link href='fullcalendar/main.css' rel='stylesheet' />
+    <script src='fullcalendar/main.js'></script>-->
+         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css"  />
+         <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.js"></script>
+    </head>
+    <body>
+        <p> Hello {{value}} !</p>
+        <br><br><br>
+        <caption><h2> Here is your schedule: </h2></caption>
+        <br><br>
+        <div id="calendar"></div>
+        <script>
+
+            let calendarEl = document.getElementById('calendar');
+            let calendar = new FullCalendar.Calendar(calendarEl,{
+                initialView: 'dayGridMonth',
+
+                eventClick: function(info) {
+                    var event_date = info.event.startStr
+                    var event_date2 = event_date.substring(0, 10);
+                    alert('Event: ' + info.event.title + ' ' + event_date2);
+                     // update database
+                    var xhr = new XMLHttpRequest();
+                    var id = "{{value_id}}"
+                    xhr.open("POST", "/insert_to_DB", true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.send(JSON.stringify({
+                        _id:id,
+                        workout_name: workoutname,
+                        workout_type: type,
+                        workout_date: dateStr,
+                        start_hour: start,
+                        duration: duration
+                    }));
+                  },
+                // pull workouts from DB
+                 events :[
+                    {% for event in events %}
+                    {
+                        title:'{{event.title}}',
+                        date:'{{event.date}}',
+                    },
+                    {% endfor %}
+                ],
+            headerToolbar: {
+            center: 'addEventButton'
+            },
+            customButtons: {
+                addEventButton: {
+                text: 'add workout...',
+                click: function() {
+                var dateStr = prompt('Enter a date in YYYY-MM-DD format');
+                var workoutname = prompt('Enter workout name');
+                var start = prompt('Enter workout start time');
+                var duration = prompt('Enter workout duration in minutes');
+                var type = prompt('Enter type : Aerobic/Stretch/power/Core...');
+                var event_title =workoutname+" "+start
+                var date = new Date(dateStr + 'T00:00:00'); // will be in local time
+
+
+                if (!isNaN(date.valueOf())) { // valid?
+                    calendar.addEvent({
+                    title: event_title,
+                    start: date,
+                    allDay: true
+                    });
+                    // update database
+                    var xhr = new XMLHttpRequest();
+                    var id = "{{value_id}}"
+                    xhr.open("POST", "/insert_to_DB", true);
+                    xhr.setRequestHeader('Content-Type', 'application/json');
+                    xhr.send(JSON.stringify({
+                        _id:id,
+                        workout_name: workoutname,
+                        workout_type: type,
+                        workout_date: dateStr,
+                        start_hour: start,
+                        duration: duration
+                    }));
+
+                } else {
+                    alert('Invalid input.');
+                     }
+                    }
+                }
+             },
+            });
+            calendar.render();
+
+        </script>
+
+
+    </body>
