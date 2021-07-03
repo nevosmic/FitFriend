@@ -69,7 +69,7 @@ def weekly_schedule(user_id):
     cur.execute(f'SELECT user_name FROM my_proj.myusers WHERE user_id=%s', [user_id])
     my_results2 = cur.fetchone()
     events = []
-    cur.execute(f'SELECT workout_name,workout_date,start_hour FROM my_proj.weekly_schedule WHERE user_id=%s', [user_id])
+    cur.execute(f'SELECT workout_name,workout_date,start_hour FROM my_proj.workouts_schedule WHERE user_id=%s', [user_id])
     workouts = cur.fetchall()
     for workout in workouts:
         workout_name = workout[0]
@@ -83,9 +83,30 @@ def weekly_schedule(user_id):
 
     mysql.connection.commit()
     cur.close()
-    return render_template('weekly_schedule.html', value=my_results2[0], value_id=user_id, events=events)
+    return render_template('my_schedule.html', value=my_results2[0], value_id=user_id, events=events)
 
-@app.route('/insert_to_DB', methods=['GET', 'POST'])
+@app.route('/insert_workouts_to DB', methods=['GET', 'POST'])
+def insert_to_db():
+    if request.method == 'POST':
+        content = request.json
+        print("content: ", content)
+        cur = mysql.connection.cursor()
+        cur.execute(
+            """INSERT INTO 
+                my_proj.workouts_schedule (
+                    user_id,
+                    workout_name,
+                    type,
+                    workout_date,
+                    start_hour,
+                    duration)
+            VALUES (%s,%s,%s,%s,%s,%s)""",
+            (content['_id'], content['workout_name'], content['workout_type'], content['workout_date'], content['start_hour'], content['duration']))
+        mysql.connection.commit()
+        cur.close()
+        return 'in DB'
+
+@app.route('/insert_reports_to DB', methods=['GET', 'POST'])
 def insert_to_db():
     if request.method == 'POST':
         content = request.json
@@ -105,6 +126,7 @@ def insert_to_db():
         mysql.connection.commit()
         cur.close()
         return 'in DB'
+
 
 if __name__ == '__main__':
     app.run()
