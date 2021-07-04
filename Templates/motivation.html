@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Motivation Graph</title>
+<!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css"  />-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
+</head>
+<body>
+    <p> Hello {{value}} !</p>
+    <br><br><br>
+    <caption><h2> Here is your Graph: </h2></caption>
+    <br><br>
+    <div id="motivation_graph">
+        <canvas id="myMotivationChart" width="700" height="300"></canvas>
+        <script>
+            var ctx = document.getElementById("myMotivationChart").getContext("2d");
+            var pieChart = new Chart(ctx, {
+                type: "line",
+                data:{
+                    labels:{{labels | safe}},
+                    datasets:[{
+                        label:"Motivation",
+                        data: {{values|safe}},
+                        fill: false,
+                        borderColor: "rgb(255,0,0)",
+                            lineTesion: 0.1}]
+                    }
+                });
+        </script>
+    </div>
+</body>
+</html>
+
+<!--[{% for item in lables %}-->
+<!--                        {{item}},-->
+<!--                    {% endfor %},-->
+<!--                    ]-->

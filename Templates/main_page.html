@@ -12,17 +12,20 @@
         <br><br>
         <br><br>
         <form method="POST" action="">
-            <input type="submit" name="btn" value="Make your weekly schedule"> </input>
+            <input type="submit" name="btn_schedule" value="Make your weekly schedule"> </input>
         </form>
         <br><br>
         <br><br>
-        <div>
-            <p>Show my weekly progress</p>
-            <ul id="drop_down">
-             <li><a href="downloads/my%20first%20uml%20Diagram.pdf">Motivation,Personal difficulty and Completion </a></li>
-             <li><a href="downloads/my%20first%20uml%20Diagram.pdf">Workout type </a></li>
-             <li><a href="downloads/my%20first%20uml%20Diagram.pdf">Total workout time </a></li>
-             </ul>
+
+        <div class="dropdown">
+          <button class="drop_btn">Show my weekly progress</button>
+          <div class="dropdown-content">
+            <a href="/motivation/{{user_id}}">Motivation</a>
+            <a href="#">Personal difficulty</a>
+            <a href="#">Completion</a>
+            <a href="#">Workout type</a>
+            <a href="#">Total workout time</a>
+          </div>
         </div>
     </body>
 </html>

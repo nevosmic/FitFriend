@@ -4,8 +4,6 @@
 <html lang='en'>
     <head>
         <title>Weekly Schedule</title>
-        <!--<link href='fullcalendar/main.css' rel='stylesheet' />
-    <script src='fullcalendar/main.js'></script>-->
          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css"  />
          <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.js"></script>
     </head>
@@ -22,21 +20,30 @@
                 initialView: 'dayGridMonth',
 
                 eventClick: function(info) {
-                    var event_date = info.event.startStr
-                    var event_date2 = event_date.substring(0, 10);
-                    alert('Event: ' + info.event.title + ' ' + event_date2);
+                    var comp = prompt('WORKOUT REPORT:\n'+'Please enter workout completion in %');
+                    var diff = prompt('Describe your personal difficulty: \n'+'TOO_EASY - 0,\n' +
+                        '  EASY -1,\n' +
+                        '  JUST_RIGHT - 2,\n' +
+                        '  GOOD_CHALLENGE - 3,\n' +
+                        '  TOUGH_BUT_POSSIBLE - 4,\n' +
+                        '  VERY_TOUGH - 5,\n' +
+                        '  ALMOST_IMPOSSIBLE - 6,   \n' +
+                        '  NOT_FOR_ME - 7');
+                    var motivation = prompt('Describe your motivation level 0-100 or more!:');
+                    var event_startStr = info.event.startStr;
+                    var event_date = event_startStr.substring(0, 10);
+                    alert('GREAT!\nREPORT IS DONE');
                      // update database
                     var xhr = new XMLHttpRequest();
                     var id = "{{value_id}}"
-                    xhr.open("POST", "/insert_to_DB", true);
+                    xhr.open("POST", "/insert reports to DB", true);
                     xhr.setRequestHeader('Content-Type', 'application/json');
                     xhr.send(JSON.stringify({
                         _id:id,
-                        workout_name: workoutname,
-                        workout_type: type,
-                        workout_date: dateStr,
-                        start_hour: start,
-                        duration: duration
+                        workout_date: event_date,
+                        personal_difficulty: diff,
+                        workout_completion: comp,
+                        motivation: motivation,
                     }));
                   },
                 // pull workouts from DB
@@ -73,7 +80,7 @@
                     // update database
                     var xhr = new XMLHttpRequest();
                     var id = "{{value_id}}"
-                    xhr.open("POST", "/insert_to_DB", true);
+                    xhr.open("POST", "/insert workouts to DB", true);
                     xhr.setRequestHeader('Content-Type', 'application/json');
                     xhr.send(JSON.stringify({
                         _id:id,
