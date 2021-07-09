@@ -1,15 +1,13 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 #  import interactionPlugin from '@fullcalendar/interaction'
 import uuid
+from datetime import date, timedelta
+from collections import Counter
 from flask_mysqldb import MySQL
 app = Flask(__name__)
 
-events = [
-    {
-        'title':"Yoga 9:00",
-        'date':"2021-06-08"
-    },
-]
+# fix
+events = []
 
 # connect to data base
 app.config['DEBUG'] = True
@@ -20,10 +18,20 @@ app.config['MYSQL_DB'] = 'my_proj' # name of data base
 mysql = MySQL(app)
 
 
+# funcs
+def calculate_percentages(pie_data):
+    values = []
+    total_num_of_workouts = sum(pie_data.values())
+    for workout_type in pie_data.keys():
+        workout_type_ratio = (pie_data[workout_type]) / total_num_of_workouts
+        workout_type_percent = workout_type_ratio * 100
+        values.append(workout_type_percent)
+    return values
+
+
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
     if request.method == "POST":
-
         details = request.form
         username = details['fname']
         cur = mysql.connection.cursor()
@@ -131,6 +139,10 @@ def create_motivation_chart(user_id):
     cur = mysql.connection.cursor()
     cur.execute(f'SELECT user_name FROM my_proj.myusers WHERE user_id=%s', [user_id])
     user_name = cur.fetchone()
+    today = date.today()
+    end_of_week = today + timedelta(6)
+    print("today ",today)
+    print("end_of_week ", end_of_week)
     week = ('2021-07-04', '2021-07-10')
     cur.execute(f'SELECT workout_date,motivation FROM my_proj.reports WHERE workout_date BETWEEN %s AND %s AND user_id=%s', (week[0], week[1], user_id))
     my_data_results = cur.fetchall()
@@ -141,7 +153,7 @@ def create_motivation_chart(user_id):
         motiv = item[1]
         chart_data.append((workout_date, motiv))
 
-    print("chart_data: ",chart_data)
+    print("chart_data: ", chart_data)
 
     mysql.connection.commit()
     cur.close()
@@ -149,7 +161,73 @@ def create_motivation_chart(user_id):
     labels = [row[0] for row in chart_data]
     values = [row[1] for row in chart_data]
 
-    return render_template('motivation.html', labels=labels, values=values, value_id=user_id)
+    return render_template('motivation.html', labels=labels, values=values, value_id=user_id, value=user_name[0])
+
+
+@app.route('/total_workout_time/<uuid:user_id>', methods=['GET', 'POST'])
+def create_total_workout_time_chart(user_id):
+    cur = mysql.connection.cursor()
+    cur.execute(f'SELECT user_name FROM my_proj.myusers WHERE user_id=%s', [user_id])
+    user_name = cur.fetchone()
+    # need to handle days..
+    today = date.today()
+    end_of_week = today + timedelta(6)
+    print("today ", today)
+    print("end_of_week ", end_of_week)
+    week = ('2021-07-04', '2021-07-10')
+    cur.execute(f'SELECT workout_date,duration FROM my_proj.workouts_schedule WHERE workout_date BETWEEN %s AND %s AND user_id=%s', (week[0], week[1], user_id))
+    my_data_results = cur.fetchall()
+    print("my_data_results: ", my_data_results)
+    chart_data = []
+    total_workout_time = 0
+    for item in my_data_results:
+        #  workout_date = item[0]
+        workout_duration = item[1]
+        total_workout_time += int(workout_duration)
+    mysql.connection.commit()
+    cur.close()
+    labels1 = [row[0] for row in my_data_results]
+    minutes_per_workout = [row[1] for row in my_data_results]
+    day_hours_in_minutes = 12 * 60
+    values1 = []
+    for workout_minutes in minutes_per_workout:
+        workout_time_ratio = str(int(workout_minutes)/day_hours_in_minutes)
+        values1.append(workout_time_ratio)
+
+    notice = "Your total workout time this week : {} minutes".format(total_workout_time)
+    return render_template('total_workout_time.html', labels1=labels1, values1=values1, value_id=user_id, value=user_name[0], total_workout_time_of_the_week=total_workout_time, notice=notice)
+
+
+@app.route('/workout_types/<uuid:user_id>', methods=['GET', 'POST'])
+def create_types_pie(user_id):
+    cur = mysql.connection.cursor()
+    cur.execute(f'SELECT user_name FROM my_proj.myusers WHERE user_id=%s', [user_id])
+    user_name = cur.fetchone()
+    today = date.today()
+    end_of_week = today + timedelta(6)
+    print("today ",today)
+    print("end_of_week ", end_of_week)
+    week = ('2021-07-04', '2021-07-10')
+    cur.execute(f'SELECT workout_date,workout_type FROM my_proj.workouts_schedule WHERE workout_date BETWEEN %s AND %s AND user_id=%s', (week[0], week[1], user_id))
+    my_data_results = cur.fetchall()
+    print("my_data_results: ", my_data_results)
+    pie_data = {}
+    labels = []
+    for item in my_data_results:
+        workout_type = item[1]
+        if workout_type in pie_data:
+            pie_data[workout_type] += 1
+        else:
+            pie_data[workout_type] = 1
+            labels.append(workout_type)
+
+    print("pie_data: ", pie_data)
+    mysql.connection.commit()
+    cur.close()
+    values = calculate_percentages(pie_data)
+
+    return render_template('workout_Types.html', labels=labels, values=values, value_id=user_id, value=user_name[0])
+
 
 if __name__ == '__main__':
     app.run()
