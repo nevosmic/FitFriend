@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, session, redirect, url_for
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 #  import interactionPlugin from '@fullcalendar/interaction'
 import uuid
 from datetime import date, timedelta
@@ -102,7 +102,7 @@ def insert_workouts_to_db():
                 my_proj.workouts_schedule (
                     user_id,
                     workout_name,
-                    type,
+                    workout_type,
                     workout_date,
                     start_hour,
                     duration)
@@ -131,7 +131,31 @@ def insert_reports_to_db():
             (content['_id'], content['workout_date'], content['personal_difficulty'], content['workout_completion'], content['motivation']))
         mysql.connection.commit()
         cur.close()
-        return 'in DB'
+        return "1"
+
+
+@app.route('/check if reported', methods=['GET', 'POST'])
+def check_if_workout_has_been_reported():
+    if request.method == 'POST':
+        content = request.json
+        print("check if reported content: ", content)
+        cur = mysql.connection.cursor()
+        cur.execute(
+            """SELECT EXISTS(SELECT * FROM my_proj.reports 
+               WHERE user_id=%s AND workout_date=%s)  
+                """,
+            (content['_id'], content['workout_date']))
+        results = cur.fetchall()
+        print('results ', results)
+
+        reported = 0
+        # if results not empty, this workout has been reported already
+        if results[0][0] == 1:
+            reported = 1
+        mysql.connection.commit()
+        cur.close()
+        return str(reported)
+            # jsonify(not_reported=not_reported)
 
 
 @app.route('/motivation/<uuid:user_id>', methods=['GET', 'POST'])
@@ -141,7 +165,7 @@ def create_motivation_chart(user_id):
     user_name = cur.fetchone()
     today = date.today()
     end_of_week = today + timedelta(6)
-    print("today ",today)
+    print("today ", today)
     print("end_of_week ", end_of_week)
     week = ('2021-07-04', '2021-07-10')
     cur.execute(f'SELECT workout_date,motivation FROM my_proj.reports WHERE workout_date BETWEEN %s AND %s AND user_id=%s', (week[0], week[1], user_id))
@@ -195,7 +219,9 @@ def create_total_workout_time_chart(user_id):
         values1.append(workout_time_ratio)
 
     notice = "Your total workout time this week : {} minutes".format(total_workout_time)
-    return render_template('total_workout_time.html', labels1=labels1, values1=values1, value_id=user_id, value=user_name[0], total_workout_time_of_the_week=total_workout_time, notice=notice)
+    total_workout_hours = total_workout_time/60
+    rest_of_week = (7*12) - total_workout_hours
+    return render_template('total_workout_time.html', labels1=labels1, values1=values1, value_id=user_id, value=user_name[0], notice=notice, total_workout_hours=total_workout_hours, rest_of_week_hours=rest_of_week)
 
 
 @app.route('/workout_types/<uuid:user_id>', methods=['GET', 'POST'])

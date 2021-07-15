@@ -17,7 +17,7 @@
             var pieChart = new Chart(ctx, {
                 type: "bar",
                 data:{
-                    labels:{{labels1 | safe}},
+                    labels:{{labels1| safe}},
                     datasets:[{
                         label:"Total workout time",
                         data: {{values1|safe}},
@@ -48,5 +48,26 @@
     </div>
     <br><br><br>
     <caption><h2> {{notice}} </h2></caption>
+    <br>
+    <div id="total_week_time">
+        <canvas id="total_workout_week_time" width="200" height="100"></canvas>
+        <script>
+            var ctx = document.getElementById("total_workout_week_time").getContext("2d");
+            var pieChart = new Chart(ctx, {
+                type: "pie",
+                data:{
+                    labels:["Total workout hours","Total Not working-out hours"],
+                    datasets:[{
+                        label:"Workout total time",
+                        data: [{{total_workout_hours}},{{rest_of_week_hours}}],
+                        backgroundColor: [
+                            'rgb(255, 99, 132)',
+                            'rgb(255, 205, 86)'
+                        ],
+                            }]
+                    }
+                });
+        </script>
+    </div>
 </body>
 </html>
