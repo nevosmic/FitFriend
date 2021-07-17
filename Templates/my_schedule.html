@@ -16,13 +16,12 @@
         <div id="calendar"></div>
 
         <script>
-
             let calendarEl = document.getElementById('calendar');
             let calendar = new FullCalendar.Calendar(calendarEl,{
                 initialView: 'dayGridMonth',
                 eventClick: function(info) {
-                    //check if report for this event is already in database
 
+                    //check if the report for this event is already in database
                     var event_date = info.event.startStr;
                     //var event_title= info.event.title;
                     var id = "{{value_id}}"
@@ -42,18 +41,30 @@
                                 alert("Reported")
                             }
 
-                            // check if request is Done
+                            // check if request is Done and need to report
                             if(!reported && (xhr.readyState==xhr.DONE)){
                                 var comp = prompt('WORKOUT REPORT:\n'+'Please enter workout completion in %');
+                                if(comp===null||comp==""){
+                                    alert('Invalid input!\nTry again.');
+                                    return;
+                                }
                                 var diff = prompt('WORKOUT REPORT:\n'+'Describe your personal difficulty: \n'+'TOO_EASY - 0,\n' +
                                     '  EASY -1,\n' +
-                                    '  JUST_RIGHT - 2,\n' +
-                                    '  GOOD_CHALLENGE - 3,\n' +
-                                    '  TOUGH_BUT_POSSIBLE - 4,\n' +
-                                    '  VERY_TOUGH - 5,\n' +
-                                    '  ALMOST_IMPOSSIBLE - 6,   \n' +
-                                    '  NOT_FOR_ME - 7');
+                                    '  JUST RIGHT - 2,\n' +
+                                    '  GOOD CHALLENGE - 3,\n' +
+                                    '  TOUGH BUT POSSIBLE - 4,\n' +
+                                    '  VERY TOUGH - 5,\n' +
+                                    '  ALMOST IMPOSSIBLE - 6,   \n' +
+                                    '  NOT FOR ME - 7');
+                                if(diff===null||diff==""){
+                                    alert('Invalid input!\nTry again.');
+                                    return;
+                                }
                                 var motivation = prompt('WORKOUT REPORT:\n'+'Describe your motivation level 0-100 or more!:');
+                                if(motivation===null||motivation==""){
+                                    alert('Invalid input!\nTry again.');
+                                    return;
+                                }
                                  // update database
                                 var xhr2 = new XMLHttpRequest();
                                 xhr2.open("POST", "/insert reports to DB", true);
@@ -76,17 +87,12 @@
                                         }
                                     }
                                 }
-/*
-                                        alert('GREAT!\nREPORT IS DONE');
-                                        if(reported){
-                                         alert("Reported")
-                                        }*/
-                                    }
-                                }
+                            }
+                       }
                     }
 
                   },
-                // pull workouts from DB
+                // pull workouts from DB to display
                  events :[
                     {% for event in events %}
                     {
@@ -103,16 +109,35 @@
                 text: 'add workout...',
                 click: function() {
                 var dateStr = prompt('Enter a date in YYYY-MM-DD format');
+                if(dateStr===null||dateStr==""){ // check if input not Null or empty
+                    alert('Invalid date!\nTry again.');
+                    return;
+                }
                 var workoutname = prompt('Enter workout name');
+                if(workoutname===null||workoutname==""){
+                    alert('Invalid workout name!\nTry again.');
+                    return;
+                }
                 var start = prompt('Enter workout start time');
+                if(start===null||start==""){
+                    alert('Invalid workout start time!\nTry again.');
+                    return;
+                }
                 var duration = prompt('Enter workout duration in minutes');
-                var type = prompt('Enter type : Aerobic/Stretch/power/Core...');
-                var event_title =workoutname+" "+start
+                if(duration===null||duration==""){
+                    alert('Invalid duration!\nTry again.');
+                    return;
+                }
+                var type = prompt('Enter type : Aerobic/Stretch/Power/Core/..\nAerobic+Power/Stretch+Core...');
+                if(type===null||type==""){
+                    alert('Invalid duration!\nTry again.');
+                    return;
+                }
                 var date = new Date(dateStr + 'T00:00:00'); // will be in local time
 
-                //TO DO : check if input not Null
 
                 if (!isNaN(date.valueOf())) { // valid?
+                    var event_title =workoutname+" "+start;
                     calendar.addEvent({
                     title: event_title,
                     start: date,
@@ -133,7 +158,7 @@
                     }));
 
                 } else {
-                    alert('Invalid input.');
+                    alert('Invalid date!\nTry again.');
                      }
                     }
                 }
