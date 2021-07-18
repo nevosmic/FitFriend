@@ -4,6 +4,7 @@ import uuid
 from datetime import date, timedelta, datetime
 from flask_mysqldb import MySQL
 from flask_mail import Mail, Message
+import os
 
 app = Flask(__name__)
 
@@ -16,20 +17,14 @@ app.config['MYSQL_PASSWORD'] = 'root'
 app.config['MYSQL_DB'] = 'my_proj' # name of data base
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_TLS'] =False
+app.config['MAIL_USERNAME'] = 'michal198767@gmail.com'
+
+app.config['MAIL_PASSWORD'] = os.environ['EMAIL_PASSWORD']
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
 
 mysql = MySQL(app)
 
-mail_settings = {
-    "MAIL_SERVER": 'smtp.gmail.com',
-    "MAIL_PORT": 465,
-    "MAIL_USE_TLS": False,
-    "MAIL_USE_SSL": True,
-    "MAIL_USERNAME": os.environ['EMAIL_USER'],
-    "MAIL_PASSWORD": os.environ['EMAIL_PASSWORD']
-}
-
-app.config.update(mail_settings)
 mail = Mail(app)
 
 # funcs
@@ -130,6 +125,14 @@ def calculate_percentages(pie_data):
     return values
 
 
+def send_mail():
+    print(os.environ['EMAIL_PASSWORD'])
+    msg = Message('Hello from the other side!', sender='michal198767@gmail.com', recipients=['michal198767@gmail.com'])
+    msg.body = "Hey"
+    mail.send(msg)
+    return "Message sent!"
+
+
 def create_motivation_chart_data(my_data_results):
     chart_data = []
     for item in my_data_results:
@@ -148,6 +151,7 @@ def welcome():
     if request.method == "POST":
         details = request.form
         username = details['fname']
+        email = details['email']
         cur = mysql.connection.cursor()
         cur.execute(f'SELECT * FROM my_proj.myusers WHERE user_name=%s', [username])
         name_results = cur.fetchall()
@@ -159,9 +163,11 @@ def welcome():
             user_id = cur.fetchone()
         mysql.connection.commit()
         cur.close()
+        send_mail()
         return redirect(url_for('main_page', user_id=user_id))
 
     return render_template('welcome.html')
+
 
 
 @app.route('/main_page/<uuid:user_id>', methods=['GET', 'POST'])
@@ -406,11 +412,13 @@ def create_completion_chart(user_id):
         workout_name = item[3]
         workout_duration = item[4]+'%'
         chart_dict[workout_type] = (workout_name, workout_duration)
-    for workout_type in chart_dict.keys():
-        chart_data=
 
     return render_template('completion.html', value_id=user_id, value=user_name[0])
 
+
+# @app.route("/mail")
+# def index():
+#
 
 if __name__ == '__main__':
     app.run()
