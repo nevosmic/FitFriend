@@ -175,5 +175,19 @@ def get_full_current_month():
 
 
 #print(get_full_current_month())
+chart_dict= {'Cardio+Power': [('Cross-Fit', '80%'), ('Tabata', '85%')], 'Aerobic': [('Kickbox', '99%')]}
+labels = []
+values = []
+for w_t in chart_dict.keys():
+    print("len: ",len(chart_dict[w_t]))
+    if len(chart_dict[w_t])>1:
+        for i in chart_dict[w_t]:
+            labels.append(i[0])
+            values.append(i[1])
+    else:
+        labels.append(chart_dict[w_t][0][0])
+        values.append(chart_dict[w_t][0][1])
 
-print('80'+'%')
+
+print('labels: ',labels)
+print('values: ',values )

@@ -7,6 +7,8 @@
     </head>
     
     <body>
+    <center>
+
         <p id="user_name"> Hello {{value}} !</p>
         <br><br>
         <br><br>
@@ -21,7 +23,7 @@
           <button class="drop_btn">Show my weekly progress</button>
           <div class="dropdown-content">
             <a href="/motivation/{{user_id}}">Motivation</a>
-            <a href="#">Personal difficulty</a>
+            <a href="/personal_diff/{{user_id}}">Personal difficulty</a>
             <a href="/workout_completion/{{user_id}}">Completion</a>
             <a href="/workout_types/{{user_id}}">Workout type</a>
             <a href="/total_workout_time/{{user_id}}">Total workout time</a>
@@ -32,12 +34,12 @@
           <button class="drop_btn">Show my monthly progress</button>
           <div class="dropdown-content">
             <a href="/motivation-month/{{user_id}}">Motivation</a>
-            <a href="#">Personal difficulty</a>
-            <a href="#">Completion</a>
+            <a href="/personal_diff-month/{{user_id}}">Personal difficulty</a>
+            <a href="/workout_completion-month/{{user_id}}">Completion</a>
             <a href="/workout_types-month/{{user_id}}">Workout type</a>
             <a href="/total_workout_time-month/{{user_id}}">Total workout time</a>
           </div>
         </div>
-
+    </center>
     </body>
 </html>

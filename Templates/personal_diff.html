@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>workout_completion</title>
+    <title>Personal difficulty</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
 </head>
 <body>
@@ -10,16 +10,16 @@
     <br><br><br>
     <caption><h2> Here is your Graph: </h2></caption>
     <br><br>
-    <div id="completion_graph">
-        <canvas id="myCompletionChart" width="700" height="300"></canvas>
+    <div id="personal_difficulty_graph">
+        <canvas id="myPersonalDifficultyChart" width="700" height="300"></canvas>
         <script>
-            var ctx = document.getElementById("myCompletionChart").getContext("2d");
+            var ctx = document.getElementById("myPersonalDifficultyChart").getContext("2d");
             var pieChart = new Chart(ctx, {
                 type: "bar",
                 data:{
                     labels:{{labels| safe}},
                     datasets:[{
-                        label:"Workout Completion %",
+                        label:"Personal Difficulty",
                         data: {{values|safe}},
                         //fill: false,
                         backgroundColor: [
@@ -34,5 +34,7 @@
                 });
         </script>
     </div>
+    <br><br><br>
+    <caption><h2> {{notice}} </h2></caption>
 </body>
 </html>

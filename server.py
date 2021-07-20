@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 
 
-# connect to data base
+# defined configuration
 app.config['DEBUG'] = True
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
@@ -18,14 +18,14 @@ app.config['MYSQL_DB'] = 'my_proj' # name of data base
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USERNAME'] = 'michal198767@gmail.com'
-
 app.config['MAIL_PASSWORD'] = os.environ['EMAIL_PASSWORD']
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
-
+# connect to data base
 mysql = MySQL(app)
-
+# connect to manager-mail (me)
 mail = Mail(app)
+
 
 # funcs
 def fetch_name_by_id(user_id, cur):
@@ -125,14 +125,6 @@ def calculate_percentages(pie_data):
     return values
 
 
-def send_mail():
-    print(os.environ['EMAIL_PASSWORD'])
-    msg = Message('Hello from the other side!', sender='michal198767@gmail.com', recipients=['michal198767@gmail.com'])
-    msg.body = "Hey"
-    mail.send(msg)
-    return "Message sent!"
-
-
 def create_motivation_chart_data(my_data_results):
     chart_data = []
     for item in my_data_results:
@@ -143,31 +135,42 @@ def create_motivation_chart_data(my_data_results):
     return chart_data_sorted
 
 
-#def creat_total_time_chart_data(my_data_res):
+# def creat_total_time_chart_data(my_data_res):
+
+
+def send_welcome_mail(user_name, user_email):
+    msg = Message('FitFriend', sender='michal198767@gmail.com', recipients=[user_email])
+    msg.body = f"Hey {user_name}!\nWelcome to Fitfriend"
+    mail.send(msg)
+    return "Welcome message sent!"
 
 
 @app.route('/', methods=['GET', 'POST'])
 def welcome():
     if request.method == "POST":
         details = request.form
-        username = details['fname']
+        user_name = details['fname']
         email = details['email']
         cur = mysql.connection.cursor()
-        cur.execute(f'SELECT * FROM my_proj.myusers WHERE user_name=%s', [username])
+        cur.execute(f'SELECT * FROM my_proj.myusers WHERE user_name=%s', [user_name])
         name_results = cur.fetchall()
         if not name_results:
             user_id = str(uuid.uuid1())
-            cur.execute("INSERT INTO my_proj.myusers (user_id,user_name) VALUES (%s,%s)", (user_id, username))
+            user_email = email
+            cur.execute("INSERT INTO my_proj.myusers (user_id,user_name,user_email) VALUES (%s,%s,%s)",
+                        (user_id, user_name, user_email))
         else:
-            cur.execute(f'SELECT user_id FROM my_proj.myusers WHERE user_name=%s', [username])
-            user_id = cur.fetchone()
+            cur.execute(f'SELECT user_id,user_email FROM my_proj.myusers WHERE user_name=%s', [user_name])
+            fetch = cur.fetchall()
+            user_id = fetch[0][0]
+            user_email = fetch[0][1]
+
         mysql.connection.commit()
         cur.close()
-        send_mail()
+        print(send_welcome_mail(user_name, user_email))
         return redirect(url_for('main_page', user_id=user_id))
 
     return render_template('welcome.html')
-
 
 
 @app.route('/main_page/<uuid:user_id>', methods=['GET', 'POST'])
@@ -276,7 +279,8 @@ def create_motivation_month_chart(user_id):
     user_name = fetch_name_by_id(user_id, cur)
     month = get_current_month()
     # Finds any values that have "07" in the fifth' position
-    cur.execute(f'SELECT workout_date,motivation FROM my_proj.reports WHERE workout_date LIKE %s AND user_id=%s', (month, user_id))
+    cur.execute(f'SELECT workout_date,motivation FROM my_proj.reports WHERE workout_date LIKE %s AND user_id=%s'
+                , (month, user_id))
     my_data_results = cur.fetchall()
     chart_data = create_motivation_chart_data(my_data_results)
     mysql.connection.commit()
@@ -291,7 +295,8 @@ def create_total_workout_time_chart(user_id):
     cur = mysql.connection.cursor()
     user_name = fetch_name_by_id(user_id, cur)
     week = get_current_week()
-    cur.execute(f'SELECT workout_date,duration FROM my_proj.workouts_schedule WHERE workout_date BETWEEN %s AND %s AND user_id=%s', (week[0], week[1], user_id))
+    cur.execute(f'SELECT workout_date,duration FROM my_proj.workouts_schedule WHERE workout_date BETWEEN %s AND %s'
+                f' AND user_id=%s', (week[0], week[1], user_id))
     my_data_results = cur.fetchall()
     mysql.connection.commit()
     cur.close()
@@ -322,8 +327,8 @@ def create_total_month_workout_time_chart(user_id):
     user_name = fetch_name_by_id(user_id, cur)
     month = get_current_month()
     # Finds any values that have "07" in the fifth' position
-    cur.execute(f'SELECT workout_date,duration FROM my_proj.workouts_schedule WHERE workout_date LIKE %s AND user_id=%s',
-                (month, user_id))
+    cur.execute(f'SELECT workout_date,duration FROM my_proj.workouts_schedule WHERE workout_date LIKE %s AND'
+                f' user_id=%s',(month, user_id))
     my_data_results = cur.fetchall()
     mysql.connection.commit()
     cur.close()
@@ -351,7 +356,8 @@ def create_types_pie(user_id):
     cur = mysql.connection.cursor()
     user_name = fetch_name_by_id(user_id, cur)
     week = get_current_week()
-    cur.execute(f'SELECT workout_date,workout_type FROM my_proj.workouts_schedule WHERE workout_date BETWEEN %s AND %s AND user_id=%s', (week[0], week[1], user_id))
+    cur.execute(f'SELECT workout_date,workout_type FROM my_proj.workouts_schedule WHERE workout_date BETWEEN %s AND %s'
+                f' AND user_id=%s', (week[0], week[1], user_id))
     my_data_results = cur.fetchall()
     mysql.connection.commit()
     cur.close()
@@ -400,25 +406,134 @@ def create_completion_chart(user_id):
     cur = mysql.connection.cursor()
     user_name = fetch_name_by_id(user_id, cur)
     week = get_current_week()
-    cur.execute(f'SELECT my_proj.workouts_schedule.user_id,my_proj.workouts_schedule.workout_type, workouts_schedule.workout_date,my_proj.workouts_schedule.workout_name, my_proj.reports.workout_completion FROM my_proj.workouts_schedule INNER JOIN my_proj.reports ON my_proj.workouts_schedule.user_id=my_proj.reports.user_id WHERE my_proj.reports.workout_date BETWEEN %s AND %s AND my_proj.reports.user_id=%s', (week[0], week[1], user_id))
+    cur.execute(f'SELECT my_proj.workouts_schedule.user_id,'
+                f'workouts_schedule.workout_date,my_proj.workouts_schedule.workout_name,'
+                f'my_proj.reports.workout_completion FROM my_proj.workouts_schedule LEFT JOIN my_proj.reports'
+                f' ON my_proj.workouts_schedule.user_id=my_proj.reports.user_id AND '
+                f'my_proj.workouts_schedule.workout_date=my_proj.reports.workout_date WHERE my_proj.reports.workout_date '
+                f'BETWEEN %s AND %s AND my_proj.reports.user_id=%s', (week[0], week[1], user_id))
+
     my_data_results = cur.fetchall()
-    print(my_data_results)
     mysql.connection.commit()
     cur.close()
+    labels = []
+    values = []
+    labels.append(" ")
+    values.append("0")
+    for item in my_data_results:
+        workout_name = item[2]
+        workout_comp = item[3]
+        labels.append(workout_name)
+        values.append(workout_comp)
 
-    chart_dict ={}
+    return render_template('completion.html', value_id=user_id, value=user_name[0], labels=labels, values=values)
+
+
+@app.route('/workout_completion-month/<uuid:user_id>', methods=['GET', 'POST'])
+def create_completion_month_chart(user_id):
+    cur = mysql.connection.cursor()
+    user_name = fetch_name_by_id(user_id, cur)
+    month = get_current_month()
+    # Finds any values that have "07" in the fifth' position
+    cur.execute(f'SELECT my_proj.workouts_schedule.user_id,'
+                f'workouts_schedule.workout_date,my_proj.workouts_schedule.workout_name,'
+                f'my_proj.reports.workout_completion FROM my_proj.workouts_schedule LEFT JOIN my_proj.reports'
+                f' ON my_proj.workouts_schedule.user_id=my_proj.reports.user_id AND '
+                f'my_proj.workouts_schedule.workout_date=my_proj.reports.workout_date '
+                f'WHERE my_proj.reports.workout_date LIKE %s AND my_proj.reports.user_id=%s', (month, user_id))
+
+    my_data_results = cur.fetchall()
+    mysql.connection.commit()
+    cur.close()
+    labels = []
+    values = []
+    labels.append(" ")
+    values.append("0")
+    for item in my_data_results:
+        workout_name = item[2]
+        workout_comp = item[3]
+        labels.append(workout_name)
+        values.append(workout_comp)
+
+    return render_template('completion.html', value_id=user_id, value=user_name[0], labels=labels, values=values)
+
+
+@app.route('/personal_diff/<uuid:user_id>', methods=['GET', 'POST'])
+def create_personal_diff_chart(user_id):
+    cur = mysql.connection.cursor()
+    user_name = fetch_name_by_id(user_id, cur)
+    week = get_current_week()
+    # Finds any values that have "07" in the fifth' position
+    cur.execute(f'SELECT my_proj.workouts_schedule.user_id,my_proj.workouts_schedule.workout_type,'
+                f'workouts_schedule.workout_date,my_proj.workouts_schedule.workout_name,'
+                f'my_proj.reports.personal_difficulty FROM my_proj.workouts_schedule LEFT JOIN my_proj.reports ON '
+                f'my_proj.workouts_schedule.user_id=my_proj.reports.user_id AND '
+                f'my_proj.workouts_schedule.workout_date=my_proj.reports.workout_date WHERE my_proj.reports.workout_date '
+                f'BETWEEN %s AND %s AND my_proj.reports.user_id=%s', (week[0], week[1], user_id))
+
+    my_data_results = cur.fetchall()
+    mysql.connection.commit()
+    cur.close()
+    labels = []
+    values = []
+    labels.append(" ")
+    values.append("0")
+    diff_over_VERY_TOUGH = set()
     for item in my_data_results:
         workout_type = item[1]
         workout_name = item[3]
-        workout_duration = item[4]+'%'
-        chart_dict[workout_type] = (workout_name, workout_duration)
+        workout_diff = item[4]
+        if int(workout_diff) > 5:
+            diff_over_VERY_TOUGH.add(workout_type)
+        labels.append(workout_name)
+        values.append(workout_diff)
 
-    return render_template('completion.html', value_id=user_id, value=user_name[0])
+    if len(diff_over_VERY_TOUGH)>1:
+        notice = "{} are challenging for you this week ".format(diff_over_VERY_TOUGH)
+    else:
+        notice = "{} is challenging for you this week ".format(diff_over_VERY_TOUGH)
+
+    return render_template('personal_diff.html', value_id=user_id, value=user_name[0], labels=labels, values=values, notice=notice)
 
 
-# @app.route("/mail")
-# def index():
-#
+@app.route('/personal_diff-month/<uuid:user_id>', methods=['GET', 'POST'])
+def create_month_personal_diff_chart(user_id):
+    cur = mysql.connection.cursor()
+    user_name = fetch_name_by_id(user_id, cur)
+    month = get_current_month()
+    # Finds any values that have "07" in the fifth' position
+    cur.execute(f'SELECT my_proj.workouts_schedule.user_id,my_proj.workouts_schedule.workout_type,'
+                f'workouts_schedule.workout_date,my_proj.workouts_schedule.workout_name,'
+                f'my_proj.reports.personal_difficulty FROM my_proj.workouts_schedule LEFT JOIN my_proj.reports ON '
+                f'my_proj.workouts_schedule.user_id=my_proj.reports.user_id AND '
+                f'my_proj.workouts_schedule.workout_date=my_proj.reports.workout_date WHERE my_proj.reports.workout_date'
+                f' LIKE %s AND my_proj.reports.user_id=%s', (month, user_id))
+
+    my_data_results = cur.fetchall()
+    mysql.connection.commit()
+    cur.close()
+    labels = []
+    values = []
+    labels.append(" ")
+    values.append("0")
+    diff_over_VERY_TOUGH = set()
+    for item in my_data_results:
+        workout_type = item[1]
+        workout_name = item[3]
+        workout_diff = item[4]
+        if int(workout_diff) > 5:
+            diff_over_VERY_TOUGH.add(workout_type)
+        labels.append(workout_name)
+        values.append(workout_diff)
+
+    if len(diff_over_VERY_TOUGH) > 1:
+        notice = "{} are challenging for you this month ".format(diff_over_VERY_TOUGH)
+    else:
+        notice = "{} is challenging for you this month ".format(diff_over_VERY_TOUGH)
+
+    return render_template('personal_diff.html', value_id=user_id, value=user_name[0], labels=labels, values=values,
+                           notice=notice)
+
 
 if __name__ == '__main__':
     app.run()

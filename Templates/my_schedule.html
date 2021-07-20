@@ -6,7 +6,6 @@
         <title>Weekly Schedule</title>
          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css"  />
          <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.js"></script>
-
     </head>
     <body>
         <p> Hello {{value}} !</p>
@@ -49,13 +48,15 @@
                                     return;
                                 }
                                 var diff = prompt('WORKOUT REPORT:\n'+'Describe your personal difficulty: \n'+'TOO_EASY - 0,\n' +
-                                    '  EASY -1,\n' +
-                                    '  JUST RIGHT - 2,\n' +
-                                    '  GOOD CHALLENGE - 3,\n' +
-                                    '  TOUGH BUT POSSIBLE - 4,\n' +
-                                    '  VERY TOUGH - 5,\n' +
-                                    '  ALMOST IMPOSSIBLE - 6,   \n' +
-                                    '  NOT FOR ME - 7');
+                                    '  TOO EASY - 1,\n' +
+                                    '  EASY - 2,\n' +
+                                    '  JUST RIGHT - 3,\n' +
+                                    '  A BIT CHALLENGING - 4,\n' +
+                                    '  TOUGH BUT POSSIBLE - 5,\n' +
+                                    '  VERY TOUGH - 6,\n' +
+                                    '  EXTRA TOUGH - 7,   \n' +
+                                    '  ALMOST IMPOSSIBLE - 8, \n' +
+                                    '  NOT FOR ME - 9');
                                 if(diff===null||diff==""){
                                     alert('Invalid input!\nTry again.');
                                     return;
