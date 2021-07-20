@@ -8,10 +8,12 @@
          <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.js"></script>
     </head>
     <body>
-        <p> Hello {{value}} !</p>
-        <br><br><br>
-        <caption><h2> Here is your schedule: </h2></caption>
+        <center>
+        <p> Hello {{value}} ! Here is your schedule:</p>
         <br><br>
+        <caption><h2> In order to fill out your report, click on your workout  </h2></caption>
+        </center>
+
         <div id="calendar"></div>
 
         <script>
@@ -82,6 +84,8 @@
                                     if (xhr2.readyState === xhr2.DONE && xhr2.status === 200) {
                                         if(parseInt(xhr2.responseText)){
                                             alert('GREAT!\nREPORT IS DONE');
+                                            // change the color
+                                            info.el.style.backgroundColor = 'red';
                                         }
                                         else{
                                             alert('There was an error');
@@ -106,6 +110,38 @@
             center: 'addEventButton'
             },
             customButtons: {
+                 myCustomButton: {
+                      text: 'delete workout',
+                      click: function() {
+                        var dateStr = prompt('Are you sure you want to delete your workout?\n If not, enter no.\n' +
+                            'If yes,enter workout date in YYYY-MM-DD format');
+                        if(dateStr===null||dateStr==""){ // check if input not Null or empty
+                        alert('Invalid date!\nTry again.');
+                        return;
+                        }
+                        else if(dateStr.localeCompare("no")==0) {
+                            return;
+                        }
+                        var date = new Date(dateStr + 'T00:00:00'); // will be in local time
+                        if (!isNaN(date.valueOf())) {
+                             // delete from database
+                            var xhr2 = new XMLHttpRequest();
+                            var id = "{{value_id}}"
+                            alert(id);
+                            alert(dateStr);
+                            xhr2.open("POST", "/delete workouts from DB", true);
+                            xhr2.setRequestHeader('Content-Type', 'application/json');
+                            xhr2.send(JSON.stringify({
+                                _id:id,
+                                workout_date: dateStr
+                            }));
+                        }
+                        else {
+                            alert('Invalid date!\nTry again.');
+                            return;
+                         }
+                   }
+                 },
                 addEventButton: {
                 text: 'add workout...',
                 click: function() {
@@ -135,8 +171,6 @@
                     return;
                 }
                 var date = new Date(dateStr + 'T00:00:00'); // will be in local time
-
-
                 if (!isNaN(date.valueOf())) { // valid?
                     var event_title =workoutname+" "+start;
                     calendar.addEvent({
@@ -164,6 +198,11 @@
                     }
                 }
              },
+              headerToolbar: {
+              left: ' addEventButton myCustomButton',
+              center: 'title',
+              right:  'today prev,next'
+              }
             });
             calendar.render();
 

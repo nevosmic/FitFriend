@@ -218,6 +218,20 @@ def insert_workouts_to_db():
         return 'in DB'
 
 
+@app.route('/delete workouts from DB', methods=['GET', 'POST'])
+def delete_workouts_from_db():
+    if request.method == 'POST':
+        content = request.json
+        print('content: ', content)
+        cur = mysql.connection.cursor()
+        cur.execute(f'DELETE FROM my_proj.workouts_schedule WHERE user_id=%s AND workout_date=%s',[content['_id'],content['workout_date']])
+        cur.execute(f'DELETE FROM my_proj.reports WHERE user_id=%s AND workout_date=%s',
+                    [content['_id'], content['workout_date']])
+        mysql.connection.commit()
+        cur.close()
+        return '1'
+
+
 @app.route('/insert reports to DB', methods=['GET', 'POST'])
 def insert_reports_to_db():
     if request.method == 'POST':
