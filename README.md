@@ -49,8 +49,8 @@ The site presents weekly and monthly statistics on the trainee's motivation leve
 
 
 **Credits**:
-This project was done as part of the **Shecode** organization.
-Thank you Masha for being my mentor!
+This project was done as part of the **she codes** organization.
+Thank you Masha Igra for being my mentor!
 
 
 
