@@ -5,10 +5,16 @@
 
 *I planned, designed and programmed this project from start to finish.*
 
+Motivation for this project: 
+
+-Encourage my friends to workout
+-Experience with FullStack
+
+![image](https://user-images.githubusercontent.com/70336936/127315636-6d5e8a08-66bb-463f-a849-114847360201.png)
+
 ***Back-End: Python Flask***
 
 ***Front-End: Html with Java Script***
-
 
 **Basic usage description:**
 
